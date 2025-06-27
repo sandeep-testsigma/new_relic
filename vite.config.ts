@@ -103,6 +103,49 @@ const newRelicSourcemapPlugin = () => {
         }
       }
     },
+    
+    closeBundle: async () => {
+      if (isNewRelicEnabled) {
+        try {
+          console.log("🧹 Cleaning up .map files from build output...");
+          
+          // Get the build output directory (usually 'dist' for Vite)
+          const buildDir = path.resolve(process.cwd(), 'dist');
+          
+          // Function to recursively find and remove .map files
+          const removeMapFiles = async (dir: string) => {
+            try {
+              const entries = await fs.readdir(dir, { withFileTypes: true });
+              
+              for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+                
+                if (entry.isDirectory()) {
+                  // Recursively process subdirectories
+                  await removeMapFiles(fullPath);
+                } else if (entry.isFile() && entry.name.endsWith('.map')) {
+                  // Remove .map file
+                  await fs.unlink(fullPath);
+                  console.log(`🗑️ Removed: ${fullPath}`);
+                }
+              }
+            } catch (error) {
+              // Ignore errors for non-existent directories
+              if (error.code !== 'ENOENT') {
+                console.warn(`⚠️ Error processing directory ${dir}:`, error.message);
+              }
+            }
+          };
+          
+          // Remove .map files from build directory
+          await removeMapFiles(buildDir);
+          console.log("✅ .map files cleanup completed");
+          
+        } catch (error) {
+          console.error("❌ Failed to cleanup .map files:", error);
+        }
+      }
+    },
   };
 };
 

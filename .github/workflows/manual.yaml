@@ -15,6 +15,9 @@ on:
       NEWRELIC_API_KEY:
         required: true
         default: ''
+      NEWRELIC_ENABLED:
+        required: true
+        default: 'false'
 
 # Sets the GITHUB_TOKEN permissions to allow deployment to GitHub Pages
 permissions:

@@ -9,7 +9,7 @@ config();
 
 const JAVASCRIPTURL_BASE = process.env.VITE_PLUGIN_JAVASCRIPTURL_BASE;
 
-const isNewRelicEnabled = true;
+const isNewRelicEnabled = process.env.NEWRELIC_ENABLED === "true";
 
 const newRelicSourcemapPlugin = () => {
   return {

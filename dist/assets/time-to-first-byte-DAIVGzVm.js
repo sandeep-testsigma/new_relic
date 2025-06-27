@@ -1,2 +1,0 @@
-import{b as n,ak as r,c as e,o}from"./index-kTlLCoIH.js";import{V as s,b as m,c as f}from"./first-paint-CG03zDOT.js";const a=new s(m.TIME_TO_FIRST_BYTE);if(n&&typeof PerformanceNavigationTiming<"u"&&!r&&window===window.parent)f(({value:i,attribution:t})=>{a.isValid||a.update({value:i,attrs:{navigationEntry:t.navigationEntry}})});else if(!a.isValid){const i={};for(let t in e?.performance?.timing||{})i[t]=Math.max(e?.performance?.timing[t]-o,0);a.update({value:i.responseStart,attrs:{navigationEntry:i}})}export{a as t};
-//# sourceMappingURL=time-to-first-byte-DAIVGzVm.js.map

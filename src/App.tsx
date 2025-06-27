@@ -178,8 +178,57 @@ function App() {
           >
             Trigger Unhandled Rejection
           </button>
+
+          <h3>Enhanced Stack Trace Tests:</h3>
+          <button 
+            onClick={triggerErrorWithStackTrace}
+            style={{ padding: '10px', backgroundColor: '#ff9ff3', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            Error with Enhanced Stack Trace
+          </button>
+          
+          <button 
+            onClick={triggerManualStackTrace}
+            style={{ padding: '10px', backgroundColor: '#54a0ff', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            Capture Manual Stack Trace
+          </button>
+          
+          <button 
+            onClick={triggerGetStackTrace}
+            style={{ padding: '10px', backgroundColor: '#5f27cd', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            Get Current Stack Trace
+          </button>
+          
+          <button 
+            onClick={triggerErrorWithTryCatch}
+            style={{ padding: '10px', backgroundColor: '#00d2d3', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            Error with Try-Catch & Context
+          </button>
+          
+          <button 
+            onClick={testNewRelicConnection}
+            style={{ padding: '10px', backgroundColor: '#ff6348', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            Test New Relic Connection
+          </button>
+        </div>
+        
+        <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
+          <h4>Stack Trace Information:</h4>
+          <ul>
+            <li><strong>Automatic Capture:</strong> New Relic automatically captures stack traces for all JavaScript errors</li>
+            <li><strong>Enhanced Context:</strong> Use the utility functions to add custom context to errors</li>
+            <li><strong>Manual Capture:</strong> Capture stack traces manually for debugging purposes</li>
+            <li><strong>Source Maps:</strong> Ensure source maps are published for readable stack traces in production</li>
+          </ul>
         </div>
       </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
     </>
   );
 }

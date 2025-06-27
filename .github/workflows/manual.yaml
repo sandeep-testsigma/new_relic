@@ -48,6 +48,7 @@ jobs:
         run: |
           echo "NEWRELIC_APPLICATION_ID=${{ github.event.inputs.NEWRELIC_APPLICATION_ID }}" > .env
           echo "NEWRELIC_API_KEY=${{ github.event.inputs.NEWRELIC_API_KEY }}" >> .env
+          cat .env
       - name: Build
         run: npm run build
       - name: Setup Pages

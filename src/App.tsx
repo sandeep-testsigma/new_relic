@@ -20,7 +20,19 @@ function App() {
       </div>
       <h1>React</h1>
       <div className="card">
-        <button onClick={() => setCounts((count) => count + 1)}>
+        <button
+          onClick={() => {
+            try {
+              setCounts((count) => count + 1);
+            } catch (error) {
+              if (window.newrelic) {
+                window.newrelic.noticeError(error);
+              } else {
+                console.log("New Relic is not initialized");
+              }
+            }
+          }}
+        >
           count is {count}
         </button>
         <p>
@@ -31,7 +43,7 @@ function App() {
         Click on the Vite and React logos to learn more
       </p>
     </>
-  )
+  );
 }
 
 export default App

@@ -3,7 +3,7 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import "./utils/newrelic";
-import { captureErrorWithStackTrace, captureManualStackTrace, getStackTrace, addCustomAttribute } from './utils/newrelic';
+import { captureErrorWithStackTrace, captureManualStackTrace, getStackTrace, addCustomAttribute, addToTrace } from './utils/newrelic';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -67,8 +67,12 @@ function App() {
     const stackTrace = getStackTrace();
     console.log('Current stack trace:', stackTrace);
     
-    // Add custom attribute
+    // Add custom attribute with proper type
     addCustomAttribute('stackTraceLength', stackTrace.split('\n').length);
+    
+    // Add to trace with timing information
+    const startTime = performance.now();
+    addToTrace('stackTraceCapture', startTime, undefined, 'user_action', 'debug');
   }
 
   const triggerErrorWithTryCatch = () => {
@@ -84,6 +88,25 @@ function App() {
         context: 'user_triggered',
         severity: 'high'
       });
+    }
+  }
+
+  const testNewRelicConnection = () => {
+    try {
+      // Test New Relic connection by adding custom attributes
+      addCustomAttribute('testConnection', true);
+      addCustomAttribute('testTimestamp', new Date().toISOString());
+      addCustomAttribute('testNumber', 42);
+      
+      // Test trace addition
+      const startTime = performance.now();
+      addToTrace('newRelicTest', startTime, undefined, 'test', 'connection');
+      
+      console.log('✅ New Relic connection test completed successfully');
+      alert('New Relic connection test completed! Check console for details.');
+    } catch (error) {
+      console.error('❌ New Relic connection test failed:', error);
+      alert('New Relic connection test failed! Check console for details.');
     }
   }
 
@@ -183,6 +206,13 @@ function App() {
             style={{ padding: '10px', backgroundColor: '#00d2d3', color: 'white', border: 'none', borderRadius: '4px' }}
           >
             Error with Try-Catch & Context
+          </button>
+          
+          <button 
+            onClick={testNewRelicConnection}
+            style={{ padding: '10px', backgroundColor: '#ff6348', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            Test New Relic Connection
           </button>
         </div>
         

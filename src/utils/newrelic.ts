@@ -46,16 +46,15 @@ export const captureErrorWithStackTrace = (error: Error, additionalData?: Record
       ...additionalData
     };
 
-    // Log to console for debugging (New Relic will automatically capture errors)
+    // Use New Relic's noticeError API to send the error with custom attributes
+    browserAgent.noticeError(error, attributes);
+
+    // Also log to console for debugging
     console.error('Error captured with stack trace:', {
       error: error.message,
       stack: stackTrace,
       additionalData
     });
-
-    // New Relic automatically captures errors with stack traces
-    // The JSErrors feature will handle this automatically
-    console.log('Error sent to New Relic with stack trace');
 
     return attributes;
   } catch (captureError) {
@@ -76,7 +75,13 @@ export const captureManualStackTrace = (message: string, additionalData?: Record
       ...additionalData
     };
 
-    // Log the manual stack trace - New Relic will capture console logs
+    // Create a custom error to send to New Relic
+    const customError = new Error(message);
+    customError.stack = stackTrace;
+    
+    // Send to New Relic with custom attributes
+    browserAgent.noticeError(customError, attributes);
+    
     console.log('Manual stack trace captured:', {
       message,
       stack: stackTrace,
@@ -90,12 +95,23 @@ export const captureManualStackTrace = (message: string, additionalData?: Record
   }
 };
 
-export const addCustomAttribute = (key: string, value: unknown) => {
+export const addCustomAttribute = (key: string, value: string | number | boolean | null) => {
   try {
-    // Log custom attributes - New Relic will capture these
-    console.log(`Custom attribute added: ${key} = ${value}`);
+    // Use New Relic's setCustomAttribute API
+    browserAgent.setCustomAttribute(key, value);
+    console.log(`Custom attribute added to New Relic: ${key} = ${value}`);
   } catch (error) {
     console.error('Failed to add custom attribute:', error);
+  }
+};
+
+export const addToTrace = (name: string, start: number, end?: number, origin?: string, type?: string) => {
+  try {
+    // Use New Relic's addToTrace API with correct parameters
+    browserAgent.addToTrace({ name, start, end, origin, type });
+    console.log('Data added to New Relic trace:', { name, start, end, origin, type });
+  } catch (error) {
+    console.error('Failed to add data to trace:', error);
   }
 };
 

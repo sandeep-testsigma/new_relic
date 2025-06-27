@@ -3,7 +3,7 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import "./utils/newrelic";
-import browserAgent from './utils/newrelic';
+import { captureErrorWithStackTrace, captureManualStackTrace, getStackTrace, addCustomAttribute, addToTrace } from './utils/newrelic';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -36,6 +36,87 @@ function App() {
   const triggerUnhandledRejection = () => {
     // This will cause an unhandled promise rejection
     Promise.reject(new Error("Unhandled promise rejection test"));
+  }
+
+  const triggerErrorWithStackTrace = () => {
+    try {
+      // Simulate an error
+      throw new Error("Custom error with enhanced stack trace");
+    } catch (error) {
+      // Capture error with additional context
+      captureErrorWithStackTrace(error as Error, {
+        userId: 'user123',
+        action: 'button_click',
+        page: 'home',
+        customData: { someValue: 'test' }
+      });
+    }
+  }
+
+  const triggerManualStackTrace = () => {
+    // Capture a manual stack trace for debugging
+    captureManualStackTrace("User performed manual stack trace capture", {
+      userId: 'user123',
+      action: 'manual_stack_trace',
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  const triggerGetStackTrace = () => {
+    // Get current stack trace
+    const stackTrace = getStackTrace();
+    console.log('Current stack trace:', stackTrace);
+    
+    // Add custom attribute with proper type
+    addCustomAttribute('stackTraceLength', stackTrace.split('\n').length);
+    
+    // Add to trace with timing information
+    const startTime = performance.now();
+    addToTrace('stackTraceCapture', startTime, undefined, 'user_action', 'debug');
+  }
+
+  const triggerErrorWithTryCatch = () => {
+    try {
+      // Simulate a complex operation that might fail
+      const result = someComplexOperation();
+      console.log('Operation result:', result);
+    } catch (error) {
+      // Enhanced error capture with context
+      captureErrorWithStackTrace(error as Error, {
+        operation: 'complexOperation',
+        step: 'execution',
+        context: 'user_triggered',
+        severity: 'high'
+      });
+    }
+  }
+
+  const testNewRelicConnection = () => {
+    try {
+      // Test New Relic connection by adding custom attributes
+      addCustomAttribute('testConnection', true);
+      addCustomAttribute('testTimestamp', new Date().toISOString());
+      addCustomAttribute('testNumber', 42);
+      
+      // Test trace addition
+      const startTime = performance.now();
+      addToTrace('newRelicTest', startTime, undefined, 'test', 'connection');
+      
+      console.log('✅ New Relic connection test completed successfully');
+      alert('New Relic connection test completed! Check console for details.');
+    } catch (error) {
+      console.error('❌ New Relic connection test failed:', error);
+      alert('New Relic connection test failed! Check console for details.');
+    }
+  }
+
+  // Simulate a complex operation that might fail
+  const someComplexOperation = () => {
+    const random = Math.random();
+    if (random > 0.5) {
+      throw new Error(`Operation failed with random value: ${random}`);
+    }
+    return `Operation succeeded with value: ${random}`;
   }
 
   return (
@@ -99,9 +180,6 @@ function App() {
           </button>
         </div>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   );
 }

@@ -8,7 +8,7 @@ on:
     inputs:
       JAVASCRIPTURL_BASE:
         required: true
-        default: ''
+        default: 'https://sandeep-testsigma.github.io/new_relic'
       NEWRELIC_APPLICATION_ID:
         required: true
         default: ''
@@ -52,6 +52,7 @@ jobs:
           echo "NEWRELIC_APPLICATION_ID=${{ github.event.inputs.NEWRELIC_APPLICATION_ID }}" > .env
           echo "NEWRELIC_API_KEY=${{ github.event.inputs.NEWRELIC_API_KEY }}" >> .env
           echo "VITE_PLUGIN_JAVASCRIPTURL_BASE=${{ github.event.inputs.JAVASCRIPTURL_BASE }}" >> .env
+          echo "NEWRELIC_ENABLED=${{ github.event.inputs.NEWRELIC_ENABLED }}" >> .env
           cat .env
       - name: Build
         run: npm run build

@@ -1,38 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import { BrowserAgent } from '@newrelic/browser-agent/src/loaders/browser-agent.js';
-import { JSErrors } from '@newrelic/browser-agent/src/features/jserrors/index.js';
+import "./utils/newrelic"
 
 function App() {
-  useEffect(() => {
-    let ba = new BrowserAgent  ({
-      init: {
-        proxy: {
-          beacon: "bam.nr-data.net",
-        },
-      },
-      info: {
-        licenseKey: "NRJS-3018cce14ac2c3bb27e",
-        applicationID: "601561630",
-      },
-      loader_config: {
-        spa: {
-          enabled: true,
-        },
-        distributedTracing: {
-          enabled: true,
-        },
-        customAttributes: {
-          enabled: true,
-        },
-      },
-      features: [JSErrors],
-    });
-    console.log(ba)
-    
-  }, []);
   const [count, setCount] = useState(0);
 
   const triggerReferenceError = () => {

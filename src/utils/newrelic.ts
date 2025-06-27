@@ -2,7 +2,7 @@ import { BrowserAgent } from "@newrelic/browser-agent/loaders/browser-agent";
 // Populate using values in copy-paste JavaScript snippet.
 import { JSErrors } from '@newrelic/browser-agent/features/jserrors'
 
-const browserAgent = new BrowserAgent({
+new BrowserAgent({
   init: {
     proxy: {
       beacon: "bam.nr-data.net",
@@ -25,6 +25,3 @@ const browserAgent = new BrowserAgent({
   },
   features: [JSErrors],
 });
-
-
-export default browserAgent;

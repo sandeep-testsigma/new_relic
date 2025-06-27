@@ -1,5 +1,6 @@
 import { BrowserAgent } from "@newrelic/browser-agent/loaders/browser-agent";
 // Populate using values in copy-paste JavaScript snippet.
+import { JSErrors } from '@newrelic/browser-agent/features/jserrors'
 
 const browserAgent = new BrowserAgent({
   init: {
@@ -22,6 +23,7 @@ const browserAgent = new BrowserAgent({
       enabled: true,
     },
   },
+  features: [JSErrors],
 });
 
 export default browserAgent;

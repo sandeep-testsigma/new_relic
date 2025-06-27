@@ -3,18 +3,21 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import "./utils/newrelic";
+import { captureErrorWithStackTrace, captureManualStackTrace, getStackTrace, addCustomAttribute } from './utils/newrelic';
 
 function App() {
   const [count, setCount] = useState(0)
 
   const triggerReferenceError = () => {
     // This will cause a ReferenceError
+    // @ts-expect-error - Intentionally causing a reference error for testing
     console.log(undefinedVariable);
   }
 
   const triggerTypeError = () => {
     // This will cause a TypeError
     const nullValue = null;
+    // @ts-expect-error - Intentionally causing a type error for testing
     nullValue.someMethod();
   }
 
@@ -33,6 +36,64 @@ function App() {
   const triggerUnhandledRejection = () => {
     // This will cause an unhandled promise rejection
     Promise.reject(new Error("Unhandled promise rejection test"));
+  }
+
+  const triggerErrorWithStackTrace = () => {
+    try {
+      // Simulate an error
+      throw new Error("Custom error with enhanced stack trace");
+    } catch (error) {
+      // Capture error with additional context
+      captureErrorWithStackTrace(error as Error, {
+        userId: 'user123',
+        action: 'button_click',
+        page: 'home',
+        customData: { someValue: 'test' }
+      });
+    }
+  }
+
+  const triggerManualStackTrace = () => {
+    // Capture a manual stack trace for debugging
+    captureManualStackTrace("User performed manual stack trace capture", {
+      userId: 'user123',
+      action: 'manual_stack_trace',
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  const triggerGetStackTrace = () => {
+    // Get current stack trace
+    const stackTrace = getStackTrace();
+    console.log('Current stack trace:', stackTrace);
+    
+    // Add custom attribute
+    addCustomAttribute('stackTraceLength', stackTrace.split('\n').length);
+  }
+
+  const triggerErrorWithTryCatch = () => {
+    try {
+      // Simulate a complex operation that might fail
+      const result = someComplexOperation();
+      console.log('Operation result:', result);
+    } catch (error) {
+      // Enhanced error capture with context
+      captureErrorWithStackTrace(error as Error, {
+        operation: 'complexOperation',
+        step: 'execution',
+        context: 'user_triggered',
+        severity: 'high'
+      });
+    }
+  }
+
+  // Simulate a complex operation that might fail
+  const someComplexOperation = () => {
+    const random = Math.random();
+    if (random > 0.5) {
+      throw new Error(`Operation failed with random value: ${random}`);
+    }
+    return `Operation succeeded with value: ${random}`;
   }
 
   return (
@@ -55,10 +116,11 @@ function App() {
           count is {count}
         </button>
         <p>
-          This page is for testing error monitoring. Click the buttons below to trigger different types of errors.
+          This page is for testing error monitoring and stack trace capture. Click the buttons below to trigger different types of errors and stack traces.
         </p>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
+          <h3>Basic Error Tests:</h3>
           <button 
             onClick={triggerReferenceError}
             style={{ padding: '10px', backgroundColor: '#ff6b6b', color: 'white', border: 'none', borderRadius: '4px' }}
@@ -91,8 +153,47 @@ function App() {
             onClick={triggerUnhandledRejection}
             style={{ padding: '10px', backgroundColor: '#feca57', color: 'white', border: 'none', borderRadius: '4px' }}
           >
-            Trigger Unhandled Promise Rejection
+            Trigger Unhandled Rejection
           </button>
+
+          <h3>Enhanced Stack Trace Tests:</h3>
+          <button 
+            onClick={triggerErrorWithStackTrace}
+            style={{ padding: '10px', backgroundColor: '#ff9ff3', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            Error with Enhanced Stack Trace
+          </button>
+          
+          <button 
+            onClick={triggerManualStackTrace}
+            style={{ padding: '10px', backgroundColor: '#54a0ff', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            Capture Manual Stack Trace
+          </button>
+          
+          <button 
+            onClick={triggerGetStackTrace}
+            style={{ padding: '10px', backgroundColor: '#5f27cd', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            Get Current Stack Trace
+          </button>
+          
+          <button 
+            onClick={triggerErrorWithTryCatch}
+            style={{ padding: '10px', backgroundColor: '#00d2d3', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            Error with Try-Catch & Context
+          </button>
+        </div>
+        
+        <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
+          <h4>Stack Trace Information:</h4>
+          <ul>
+            <li><strong>Automatic Capture:</strong> New Relic automatically captures stack traces for all JavaScript errors</li>
+            <li><strong>Enhanced Context:</strong> Use the utility functions to add custom context to errors</li>
+            <li><strong>Manual Capture:</strong> Capture stack traces manually for debugging purposes</li>
+            <li><strong>Source Maps:</strong> Ensure source maps are published for readable stack traces in production</li>
+          </ul>
         </div>
       </div>
       <p className="read-the-docs">

@@ -7,7 +7,7 @@ import { JSErrors } from '@newrelic/browser-agent/src/features/jserrors/index.js
 
 function App() {
   useEffect(() => {
-    new BrowserAgent  ({
+    let ba = new BrowserAgent  ({
       init: {
         proxy: {
           beacon: "bam.nr-data.net",
@@ -30,6 +30,7 @@ function App() {
       },
       features: [JSErrors],
     });
+    console.log(ba)
     
   }, []);
   const [count, setCount] = useState(0);

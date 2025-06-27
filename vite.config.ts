@@ -34,7 +34,7 @@ const newRelicSourcemapPlugin = () => {
           // Extract source maps from bundle and write to temp directory
           let sourcemapCount = 0;
           for (const [fileName, file] of Object.entries(bundle)) {
-            if (file.type === "chunk" && file.map) {
+            if (file && typeof file === 'object' && 'type' in file && 'map' in file && file.type === "chunk" && file.map) {
               const sourcemapPath = path.join(tempDir, `${fileName}.map`);
               // Ensure the directory exists before writing the file
               await fs.mkdir(path.dirname(sourcemapPath), { recursive: true });
@@ -108,6 +108,7 @@ const newRelicSourcemapPlugin = () => {
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/new_relic/',
   plugins: [react(), isNewRelicEnabled && newRelicSourcemapPlugin()],
   build: {
     sourcemap: true,

@@ -37,8 +37,8 @@ const publishSourcemapAsync = (publishOptions) => {
 
 const newRelicSourcemapPlugin = () => {
   return {
-    name: "newrelic-sourcemap",
     generateBundle: async (options, bundle) => {
+      console.log(`✅ generateBundle`);
       if (isNewRelicEnabled) {
         try {
           // Validate required parameters
@@ -61,8 +61,10 @@ const newRelicSourcemapPlugin = () => {
             if (file && typeof file === 'object' && 'type' in file && 'map' in file && file.type === "chunk" && file.map) {
               const sourcemapPath = path.join(tempDir, `${fileName}.map`);
               // Ensure the directory exists before writing the file
+              console.log(`✅ Sourcemap ${JSON.stringify(file, null, 2)}`);
               await fs.mkdir(path.dirname(sourcemapPath), { recursive: true });
-              await fs.writeFile(sourcemapPath, JSON.stringify(file.map));
+              await fs.writeFile(sourcemapPath, JSON.stringify(file.map.sourcesContent.join(""))); //
+
               sourcemapCount++;
 
               // Publish sourcemap immediately after writing

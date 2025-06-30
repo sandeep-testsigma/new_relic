@@ -47,7 +47,7 @@ export default class ErrorBoundary extends Component<
     if (this.state.hasError) {
       return (
         <div>
-          <h1>Error</h1>
+          <h1>Error happened</h1>
         </div>
       );
     }

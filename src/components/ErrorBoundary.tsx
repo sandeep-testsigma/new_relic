@@ -1,12 +1,13 @@
 import { Component } from "react";
-import { sendError } from "../utils/new_relic";
-
+import NewRelicService from "../utils/new_relic";
 interface ErrorBoundaryProps {
   children: React.ReactNode;
+  newRelic: NewRelicService;
 }
 
 interface ErrorBoundaryState {
   hasError: boolean;
+  newRelic: NewRelicService | null;
 }
 
 export default class ErrorBoundary extends Component<
@@ -16,7 +17,7 @@ export default class ErrorBoundary extends Component<
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.setErrorState = this.setErrorState.bind(this);
-    this.state = { hasError: false};
+    this.state = { hasError: false, newRelic: props.newRelic};
   }
 
   static getDerivedStateFromError(error: Error) {
@@ -24,9 +25,19 @@ export default class ErrorBoundary extends Component<
     return { hasError: true };
   }
 
+  componentDidUpdate(prevProps: ErrorBoundaryProps) {
+    if(this.props.newRelic !== prevProps.newRelic) {
+      this.setState({newRelic: this.props.newRelic});
+    }
+  }
+
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Once we integrate sentry we can log the error to sentry
-    sendError(error, errorInfo);
+    this.state.newRelic?.sendError(error, errorInfo);
+    this.state.newRelic?.sendPageAction("ErrorBoundary", {
+      error: error.message,
+      errorInfo: errorInfo.componentStack,
+    });
   }
   setErrorState() {
     this.setState({ hasError: false });
@@ -44,3 +55,7 @@ export default class ErrorBoundary extends Component<
     return this.props.children;
   }
 }
+
+export const ErrorBoundaryWrapper = ({ children, newRelic }: { children: React.ReactNode, newRelic: NewRelicService }) => {
+  return <ErrorBoundary newRelic={newRelic}>{children}</ErrorBoundary>;
+}; 

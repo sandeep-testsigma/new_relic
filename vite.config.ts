@@ -7,9 +7,11 @@ import { config } from 'dotenv';
 
 config();
 
+const dryRun = false;
+
 const JAVASCRIPTURL_BASE = process.env.VITE_PLUGIN_JAVASCRIPTURL_BASE;
 
-const isNewRelicEnabled = process.env.NEWRELIC_ENABLED === "true";
+const isNewRelicEnabled = process.env.NEWRELIC_ENABLED === "true" || dryRun;
 
 // Wrap publishSourcemap in a Promise
 const publishSourcemapAsync = (publishOptions) => {
@@ -37,10 +39,13 @@ const publishSourcemapAsync = (publishOptions) => {
 
 const newRelicSourcemapPlugin = () => {
   return {
-    generateBundle: async (options, bundle) => {
-      console.log(`✅ generateBundle`);
+    name: 'newrelic-sourcemap-plugin',
+    
+    closeBundle: async () => {
       if (isNewRelicEnabled) {
         try {
+          console.log("🚀 Starting New Relic sourcemap upload...");
+          
           // Validate required parameters
           const applicationId = process.env.NEWRELIC_APPLICATION_ID;
           const apiKey = process.env.NEWRELIC_API_KEY;
@@ -51,93 +56,11 @@ const newRelicSourcemapPlugin = () => {
             return;
           }
 
-          // Create temporary directory for source maps
-          const tempDir = "./temp-sourcemaps";
-          await fs.mkdir(tempDir, { recursive: true });
-
-          // Extract source maps from bundle and write to temp directory
-          let sourcemapCount = 0;
-          for (const [fileName, file] of Object.entries(bundle)) {
-            if (file && typeof file === 'object' && 'type' in file && 'map' in file && file.type === "chunk" && file.map) {
-              const sourcemapPath = path.join(tempDir, `${fileName}.map`);
-              // Ensure the directory exists before writing the file
-              console.log(`✅ Sourcemap ${JSON.stringify(file, null, 2)}`);
-              await fs.mkdir(path.dirname(sourcemapPath), { recursive: true });
-              await fs.writeFile(sourcemapPath, JSON.stringify(file.map.sourcesContent.join(""))); //
-
-              sourcemapCount++;
-
-              // Publish sourcemap immediately after writing
-              try {
-                const javascriptUrl = `${JAVASCRIPTURL_BASE}/${fileName}`;
-
-                // Validate that javascriptUrl is not empty
-                if (!javascriptUrl || !fileName) {
-                  console.error(`❌ Invalid javascriptUrl or fileName:`, {
-                    javascriptUrl,
-                    fileName,
-                  });
-                  throw new Error("javascriptUrl or fileName is empty");
-                }
-
-                const publishOptions = {
-                  applicationId,
-                  apiKey,
-                  sourcemapPath: sourcemapPath,
-                  javascriptUrl: javascriptUrl,
-                };
-                // Usage with error handling
-                try {
-                  const result = await publishSourcemapAsync(publishOptions);
-                  // Handle success
-                  if (result === "already published") {
-                    // Optionally handle the "already published" case
-                  } else {
-                    // Optionally handle the successful publish case
-                  }
-                } catch (error) {
-                  // Handle error
-                  console.error("Error while publishing sourcemap:", error);
-                  // Optionally, perform any cleanup or retry logic here
-                }
-              } catch (publishError) {
-                console.error(
-                  `❌ Failed to publish sourcemap ${fileName}.map:`,
-                  publishError
-                );
-                // Clean up the file even if publish failed
-                await fs.unlink(sourcemapPath).catch(() => {});
-              }
-            }
-          }
-
-          if (sourcemapCount === 0) {
-            console.warn(
-              "⚠️ No sourcemap files found in bundle. Make sure sourcemaps are enabled in build configuration."
-            );
-            await fs.rm(tempDir, { recursive: true, force: true });
-            return;
-          }
-
-          // Clean up temp directory (should be empty now, but just in case)
-          await fs.rm(tempDir, { recursive: true, force: true });
-        } catch (error) {
-          console.error("❌ Failed to publish New Relic sourcemaps:", error);
-          console.error("Error details:", error.message);
-        }
-      }
-    },
-    
-    closeBundle: async () => {
-      if (isNewRelicEnabled) {
-        try {
-          console.log("🧹 Cleaning up .map files from build output...");
-          
           // Get the build output directory (usually 'dist' for Vite)
           const buildDir = path.resolve(process.cwd(), 'dist');
           
-          // Function to recursively find and remove .map files
-          const removeMapFiles = async (dir: string) => {
+          // Function to recursively find and upload .map files
+          const uploadMapFiles = async (dir: string) => {
             try {
               const entries = await fs.readdir(dir, { withFileTypes: true });
               
@@ -146,11 +69,56 @@ const newRelicSourcemapPlugin = () => {
                 
                 if (entry.isDirectory()) {
                   // Recursively process subdirectories
-                  await removeMapFiles(fullPath);
+                  await uploadMapFiles(fullPath);
                 } else if (entry.isFile() && entry.name.endsWith('.map')) {
-                  // Remove .map file
-                  await fs.unlink(fullPath);
-                  console.log(`🗑️ Removed: ${fullPath}`);
+                  // Upload .map file to New Relic
+                  try {
+                    // Get the relative path from dist directory
+                    const relativePath = path.relative(buildDir, fullPath);
+                    // Remove .map extension to get the JavaScript file name
+                    const jsFileName = relativePath.replace(/\.map$/, '');
+                    
+                    const javascriptUrl = `${JAVASCRIPTURL_BASE}/${jsFileName}`;
+                    
+                    // Validate that javascriptUrl is not empty
+                    if (!javascriptUrl || !jsFileName) {
+                      console.error(`❌ Invalid javascriptUrl or jsFileName:`, {
+                        javascriptUrl,
+                        jsFileName,
+                      });
+                      throw new Error("javascriptUrl or jsFileName is empty");
+                    }
+
+                    const publishOptions = {
+                      applicationId,
+                      apiKey,
+                      sourcemapPath: fullPath,
+                      javascriptUrl: javascriptUrl,
+                    };
+
+                    console.log(`📤 Uploading sourcemap: ${relativePath} -> ${javascriptUrl}`);
+                    if(!dryRun) {
+                      const result = await publishSourcemapAsync(publishOptions);
+                      if (result === "already published") {
+                        console.log(`✅ Sourcemap already published: ${relativePath}`);
+                      } else {
+                        console.log(`✅ Sourcemap uploaded successfully: ${relativePath}`);
+                      }
+                    } else {
+                      console.log(`🔍 Dry run: Would upload sourcemap: ${relativePath} -> ${javascriptUrl}`);
+                    }
+                    
+                    // Remove the .map file after successful upload
+                    await fs.unlink(fullPath);
+                    console.log(`🗑️ Removed: ${fullPath}`);
+                    
+                  } catch (uploadError) {
+                    console.error(
+                      `❌ Failed to upload sourcemap ${entry.name}:`,
+                      uploadError
+                    );
+                    // Don't remove the file if upload failed
+                  }
                 }
               }
             } catch (error) {
@@ -161,12 +129,13 @@ const newRelicSourcemapPlugin = () => {
             }
           };
           
-          // Remove .map files from build directory
-          await removeMapFiles(buildDir);
-          console.log("✅ .map files cleanup completed");
+          // Upload .map files from build directory
+          await uploadMapFiles(buildDir);
+          console.log("✅ New Relic sourcemap upload completed");
           
         } catch (error) {
-          console.error("❌ Failed to cleanup .map files:", error);
+          console.error("❌ Failed to upload New Relic sourcemaps:", error);
+          console.error("Error details:", error.message);
         }
       }
     },

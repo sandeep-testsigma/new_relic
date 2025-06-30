@@ -48,6 +48,7 @@ export default class ErrorBoundary extends Component<
       return (
         <div>
           <h1>Error happened</h1>
+          <button onClick={this.setErrorState}>Reset</button>
         </div>
       );
     }

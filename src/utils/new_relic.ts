@@ -51,7 +51,7 @@ class NewRelicService {
 
     this.newrelic = new BrowserAgent({
       init: {
-        proxy: this.config.proxy,
+        // proxy: this.config.proxy,
       },
       info: {
         licenseKey: this.config.licenseKey,

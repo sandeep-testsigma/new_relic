@@ -1,5 +1,5 @@
-import { Component } from 'react';
-import browserAgent from '../utils/newrelic';
+import { Component } from "react";
+import { sendError } from "../utils/new_relic";
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -13,20 +13,20 @@ export default class ErrorBoundary extends Component<
   ErrorBoundaryProps,
   ErrorBoundaryState
 > {
-  constructor(props) {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.setErrorState = this.setErrorState.bind(this);
-    this.state = { hasError: false };
+    this.state = { hasError: false};
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error) {
     // Update state so the next render will show the fallback UI.
     return { hasError: true };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Once we integrate sentry we can log the error to sentry
-    console.log({ error, extraInfo: errorInfo });
+    sendError(error, errorInfo);
   }
   setErrorState() {
     this.setState({ hasError: false });

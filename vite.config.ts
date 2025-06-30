@@ -11,6 +11,30 @@ const JAVASCRIPTURL_BASE = process.env.VITE_PLUGIN_JAVASCRIPTURL_BASE;
 
 const isNewRelicEnabled = process.env.NEWRELIC_ENABLED === "true";
 
+// Wrap publishSourcemap in a Promise
+const publishSourcemapAsync = (publishOptions) => {
+  return new Promise((resolve, reject) => {
+    publishSourcemap(publishOptions, (error, data) => {
+      if (error) {
+        if (error.response.body.code === 409) {
+          console.log("✅ Sourcemap already published");
+          resolve("already published");
+        } else {
+          console.error(
+            "❌ Failed to publish sourcemap",
+            error.response.body
+          );
+          reject(error);
+        }
+      } else {
+        console.log("✅ Sourcemap published successfully");
+        console.log(data);
+        resolve(data);
+      }
+    });
+  });
+};
+
 const newRelicSourcemapPlugin = () => {
   return {
     name: "newrelic-sourcemap",
@@ -60,22 +84,20 @@ const newRelicSourcemapPlugin = () => {
                   sourcemapPath: sourcemapPath,
                   javascriptUrl: javascriptUrl,
                 };
-
-                publishSourcemap(publishOptions, async (error, data) => {
-                  if (error) {
-                    if (error.response.body.code === 409) {
-                      console.log("✅ Sourcemap already published");
-                    } else {
-                      console.error(
-                        "❌ Failed to publish sourcemap",
-                        error.response.body
-                      );
-                    }
+                // Usage with error handling
+                try {
+                  const result = await publishSourcemapAsync(publishOptions);
+                  // Handle success
+                  if (result === "already published") {
+                    // Optionally handle the "already published" case
                   } else {
-                    console.log("✅ Sourcemap published successfully");
-                    console.log(data);
+                    // Optionally handle the successful publish case
                   }
-                });
+                } catch (error) {
+                  // Handle error
+                  console.error("Error while publishing sourcemap:", error);
+                  // Optionally, perform any cleanup or retry logic here
+                }
               } catch (publishError) {
                 console.error(
                   `❌ Failed to publish sourcemap ${fileName}.map:`,

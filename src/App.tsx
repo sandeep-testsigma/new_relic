@@ -62,46 +62,6 @@ function App() {
         <p>
           This page is for testing error monitoring and stack trace capture. Click the buttons below to trigger different types of errors and stack traces.
         </p>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
-          <h3>Basic Error Tests:</h3>
-          <button 
-            onClick={triggerReferenceError}
-            style={{ padding: '10px', backgroundColor: '#ff6b6b', color: 'white', border: 'none', borderRadius: '4px' }}
-          >
-            Trigger Reference Error
-          </button>
-          
-          <button 
-            onClick={triggerTypeError}
-            style={{ padding: '10px', backgroundColor: '#4ecdc4', color: 'white', border: 'none', borderRadius: '4px' }}
-          >
-            Trigger Type Error
-          </button>
-          
-          <button 
-            onClick={triggerCustomError}
-            style={{ padding: '10px', backgroundColor: '#45b7d1', color: 'white', border: 'none', borderRadius: '4px' }}
-          >
-            Trigger Custom Error
-          </button>
-          
-          <button 
-            onClick={triggerAsyncError}
-            style={{ padding: '10px', backgroundColor: '#96ceb4', color: 'white', border: 'none', borderRadius: '4px' }}
-          >
-            Trigger Async Error
-          </button>
-          
-          <button 
-            onClick={triggerUnhandledRejection}
-            style={{ padding: '10px', backgroundColor: '#feca57', color: 'white', border: 'none', borderRadius: '4px' }}
-          >
-            Trigger Unhandled Rejection
-          </button>
-
-          
-        </div>
       </div>
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more

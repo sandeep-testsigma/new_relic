@@ -154,6 +154,7 @@ export default defineConfig({
   base: '/new_relic/',
   plugins: [react(), isNewRelicEnabled && newRelicSourcemapPlugin()],
   build: {
+    // minify: true,
     sourcemap: true,
   },
 });

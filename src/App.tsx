@@ -50,7 +50,7 @@ function App() {
       <div className="card">
         <button
           onClick={() => {
-            setCount((count) => count + 1);
+            throw new Error("Test error");
           }}
         >
           count is {count}
